@@ -115,11 +115,24 @@ Aachorripsis {
 	}
 }
 
+
 AachorripsisGUI {
+	classvar <>colors;
 	var window;
 
+	*initClass {
+		colors = (
+			0: Color.white,
+			1: Color.grey,
+			2: Color.green,
+			3: Color.cyan,
+			4: Color.red,
+			5: Color.magenta,
+		);
+	}
+
 	*new {
-		^this.init;
+		^super.newCopyArgs().init;
 	}
 
 	init {
@@ -127,5 +140,29 @@ AachorripsisGUI {
 			name: "Aachorripsis",
 			bounds: Rect(0, 0, 800, 400),
 		);
+	}
+
+	buildWindow { |m|
+		var scroll = ScrollView(
+			parent: window,
+			bounds: Rect(0, 0, 1400, 700),
+		).hasBorder_(true);
+
+		var comp = VLayoutView(
+			parent: scroll,
+			bounds: Rect(0, 0, 1400, 700),
+		);
+
+
+		m.do({|rows, i|
+			var rowView = HLayoutView(parent: comp, bounds: Rect(0, 0, 500, 50));
+
+			rows.do({|column, j|
+				var v = m[i][j];
+				Button(rowView).states_([["%".format(v), Color.black, AachorripsisGUI.colors[v] ? Color.blue]]);
+			});
+		});
+
+		window.front;
 	}
 }
