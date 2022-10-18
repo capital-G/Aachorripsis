@@ -1,3 +1,17 @@
+AachorripsisCell {
+	// dataclass
+	var <type;
+	var <density;
+
+	*new {|type=0, density=0|
+		^super.newCopyArgs(type, density);
+	}
+
+    printOn { | stream |
+        stream << type << " (" << density << ")";
+    }
+}
+
 Aachorripsis {
 	var <columns; // number of time segments
 	var <rows; // number of instruments/tracks
@@ -33,33 +47,36 @@ Aachorripsis {
 		// p = p.normalizeSum;
 		["p", p].postln;
 
-		// create empty 0 matrix with track/rows x time/columns
-		matrix = rows.collect({columns.collect({0})});
+		// create empty matrix with track/rows x time/columns
+		// we use a custom dataclass here as the matrix consists of two values
+		// the event type and the density
+		matrix = rows.collect({columns.collect({AachorripsisCell()})});
 
 		// start from most sim events as these can clug our matrix
 		// we also can skip the 0 events
 		(rows..1).do({|i|
 			var q = p;
+
 			// remove empty events
 			q[0] = nil;
-			q.pairsDo({|k, v|
-				(v[\simEvents][i] ? 0).do({
+
+			q.pairsDo({|eventType, props|
+				(props[\simEvents][i] ? 0).do({
 					this.prInsertEvent(
-						eventType: v[\type],
+						eventType: props[\type],
 						simEvents: i,
+						density: props[\type],
 					);
 				});
 			});
 		});
-
-
 	}
 
 	*poisson{|lambda, k|
 		^((lambda**k)/(k.factorial))*(((-1)*lambda).exp);
 	}
 
-	prInsertEvent { |eventType, simEvents|
+	prInsertEvent { |eventType, simEvents, density|
 		var columnSpace;
 		var fittingIndices = [];
 		var index;
@@ -68,15 +85,16 @@ Aachorripsis {
 		["insert", eventType, simEvents].postln;
 		// count all 0s for each column
 		columnSpace = columns.collect({|i|
-			var columnValues = matrix.collect({|row|
-				row[i]
+			var columnEventTypes = matrix.collect({|row|
+				row[i].type;
 			});
+
 			// if column already contains the event type it is also = 0
 			// as otherwise a 1-sim-single event could become a 2-sim-single event
-			if(columnValues.includes(eventType), {
+			if(columnEventTypes.includes(eventType), {
 				0;
 			}, {
-				columnValues.select({|x| x==0}).size;
+				columnEventTypes.select({|x| x==0}).size;
 			});
 		});
 		["columnSpace", columnSpace].postln;
@@ -102,7 +120,7 @@ Aachorripsis {
 
 		// look which rows/tracks are empty
 		matrix.do({|row, j|
-			if(row[index]==0, {
+			if(row[index].type==0, {
 				nonActiveTracks = nonActiveTracks.add(j);
 			});
 		});
@@ -110,7 +128,10 @@ Aachorripsis {
 
 		// place the events into the matrix
 		nonActiveTracks.scramble[(0..(simEvents-1))].do({|j|
-			matrix[j][index] = eventType;
+			matrix[j][index] = AachorripsisCell(
+				type: eventType,
+				density: density,
+			);
 		});
 	}
 }
@@ -158,8 +179,8 @@ AachorripsisGUI {
 			var rowView = HLayoutView(parent: comp, bounds: Rect(0, 0, 500, 50));
 
 			rows.do({|column, j|
-				var v = m[i][j];
-				Button(rowView).states_([["%".format(v), Color.black, AachorripsisGUI.colors[v] ? Color.blue]]);
+				var event = m[i][j];
+				Button(rowView).states_([[event.density, Color.black, AachorripsisGUI.colors[event.type] ? Color.blue]]);
 			});
 		});
 
