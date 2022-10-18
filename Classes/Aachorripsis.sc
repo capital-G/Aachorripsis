@@ -29,7 +29,7 @@ Aachorripsis {
 				simEvents: simEvents;
 			);
 		});
-		// @todo enforce sum=1 for stability in calculations
+		// @todo enforce sum=1 for stability in calculations ?
 		// p = p.normalizeSum;
 		["p", p].postln;
 
@@ -68,9 +68,16 @@ Aachorripsis {
 		["insert", eventType, simEvents].postln;
 		// count all 0s for each column
 		columnSpace = columns.collect({|i|
-			matrix.collect({|row|
+			var columnValues = matrix.collect({|row|
 				row[i]
-			}).select({|x| x==0}).size;
+			});
+			// if column already contains the event type it is also = 0
+			// as otherwise a 1-sim-single event could become a 2-sim-single event
+			if(columnValues.includes(eventType), {
+				0;
+			}, {
+				columnValues.select({|x| x==0}).size;
+			});
 		});
 		["columnSpace", columnSpace].postln;
 
@@ -81,7 +88,13 @@ Aachorripsis {
 		});
 		["fittingIndices", fittingIndices].postln;
 
-		// todo check if empty
+		if(fittingIndices.isEmpty, {
+			"Could not insert % simultaneous % events into matrix - no space left".format(
+				simEvents,
+				eventType,
+			).warn;
+			^this;
+		});
 
 		// select one random column which still has place
 		index = fittingIndices.choose;
@@ -95,6 +108,7 @@ Aachorripsis {
 		});
 		["nonActiveTracks", nonActiveTracks].postln;
 
+		// place the events into the matrix
 		nonActiveTracks.scramble[(0..(simEvents-1))].do({|j|
 			matrix[j][index] = eventType;
 		});
