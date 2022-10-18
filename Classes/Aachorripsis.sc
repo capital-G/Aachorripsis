@@ -60,9 +60,43 @@ Aachorripsis {
 	}
 
 	prInsertEvent { |eventType, simEvents|
+		var columnSpace;
+		var fittingIndices = [];
+		var index;
+		var nonActiveTracks = [];
+
 		["insert", eventType, simEvents].postln;
 		// count all 0s for each column
+		columnSpace = columns.collect({|i|
+			matrix.collect({|row|
+				row[i]
+			}).select({|x| x==0}).size;
+		});
+		["columnSpace", columnSpace].postln;
+
+		columnSpace.do({|space, i|
+			if(space>=simEvents, {
+				fittingIndices = fittingIndices.add(i);
+			});
+		});
+		["fittingIndices", fittingIndices].postln;
+
+		// todo check if empty
+
 		// select one random column which still has place
-		// insert into matrix
+		index = fittingIndices.choose;
+		["index", index].postln;
+
+		// look which rows/tracks are empty
+		matrix.do({|row, j|
+			if(row[index]==0, {
+				nonActiveTracks = nonActiveTracks.add(j);
+			});
+		});
+		["nonActiveTracks", nonActiveTracks].postln;
+
+		nonActiveTracks.scramble[(0..(simEvents-1))].do({|j|
+			matrix[j][index] = eventType;
+		});
 	}
 }
