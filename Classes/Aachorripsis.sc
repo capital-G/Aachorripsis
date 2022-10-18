@@ -114,3 +114,18 @@ Aachorripsis {
 		});
 	}
 }
+
+AachorripsisGUI {
+	var window;
+
+	*new {
+		^this.init;
+	}
+
+	init {
+		window = Window.new(
+			name: "Aachorripsis",
+			bounds: Rect(0, 0, 800, 400),
+		);
+	}
+}
