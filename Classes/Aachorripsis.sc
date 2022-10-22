@@ -274,7 +274,15 @@ AachorripsisGUI {
 		rightVLayout.add(Button().states_([
 			["Play", Color.black, Color.green],
 			["Stop", Color.black, Color.red]
-		]));
+		]).action_({|butt|
+			if(butt.value==1, {
+				"Start Aachorripsis Tdef".postln;
+				Tdef(\aachorripsis).play;
+			}, {
+				"Stop Aachorripsis Tdef".postln;
+				Tdef(\aachorripsis).stop;
+			});
+		}));
 		rightVLayout.add(StaticText().string_("CurrentLocation"));
 		curColumnText = StaticText().string_(curColumn);
 		rightVLayout.add(curColumnText);
@@ -287,13 +295,21 @@ AachorripsisGUI {
 	}
 
 	curColumn_ {|newColumn|
-		// pos is num of Cell
-		scrollView.visibleOrigin_(Point(x: (newColumn/columns)*scrollView.innerBounds.width - (scrollView.bounds.width/2), y: 0));
-		curColumnText.string_(newColumn);
-		timeButtons.do({|button|
-			button.value = 0;
-		});
+		// make this async so we can update from a tdef clock
+		{
+			var activeButton;
+			scrollView.visibleOrigin_(Point(x: (newColumn/columns)*scrollView.innerBounds.width - (scrollView.bounds.width/2), y: 0));
+			curColumnText.string_(newColumn);
+			timeButtons.do({|button|
+				button.value = 0;
+			});
+			// only update if we are in range
+			activeButton = timeButtons[newColumn-1];
+			if(activeButton.notNil, {
+				activeButton.value = 1;
+			});
+		}.defer;
 		curColumn = newColumn;
-		timeButtons[newColumn-1].value = 1;
+
 	}
 }
