@@ -26,3 +26,6 @@ thisProcess.recompile;
 Take a look into the provided `aachoripsis-play.scd` on how to run this.
 This includes an example how the generated events are used as gates or envelopes in an eurorack environment.
 
+## License
+
+GPL-2.0
