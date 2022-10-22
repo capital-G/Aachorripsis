@@ -20,3 +20,9 @@ You can update it via
 Quarks.update("Aachorripsis");
 thisProcess.recompile;
 ```
+
+## Usage
+
+Take a look into the provided `aachoripsis-play.scd` on how to run this.
+This includes an example how the generated events are used as gates or envelopes in an eurorack environment.
+
