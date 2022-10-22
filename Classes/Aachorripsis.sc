@@ -7,21 +7,28 @@ AachorripsisCell {
 		^super.newCopyArgs(type, density);
 	}
 
-    printOn { | stream |
-        stream << type << " (" << density << ")";
-    }
+	printOn { | stream |
+		stream << type << " (" << density << ")";
+	}
 }
 
 Aachorripsis {
 	var <columns; // number of time segments
 	var <rows; // number of instruments/tracks
 	var <lambda; // average that an event will happen
-	var <maxEventOrder; // there are 0-events, 1-events, 2-events, ...
+	var singleEventsPerSec;
+	// xenakis uses 1-events... but the used density for a cell is
+	// not directly equal to this but instead it is normal distributed
+	// this is not documented in formalized music but if you compare the
+	// numbers in the score it checks out
+	var <distributeDensity;
+	// there are 0-events, 1-events, 2-events - you may want to limit this?
+	var <maxEventOrder;
 	var <matrix;
 	var <p;
 
-	*new {|columns=28, rows=7, lambda=0.6, maxEventOrder=5|
-		^super.newCopyArgs(columns, rows, lambda, maxEventOrder).init;
+	*new {|columns=28, rows=7, lambda=0.6, singleEventsPerSec=2, distributeDensity=true, maxEventOrder=5|
+		^super.newCopyArgs(columns, rows, lambda, singleEventsPerSec, distributeDensity, maxEventOrder).init;
 	}
 
 	init {
@@ -65,7 +72,6 @@ Aachorripsis {
 					this.prInsertEvent(
 						eventType: props[\type],
 						simEvents: i,
-						density: props[\type],
 					);
 				});
 			});
@@ -76,7 +82,7 @@ Aachorripsis {
 		^((lambda**k)/(k.factorial))*(((-1)*lambda).exp);
 	}
 
-	prInsertEvent { |eventType, simEvents, density|
+	prInsertEvent { |eventType, simEvents|
 		var columnSpace;
 		var fittingIndices = [];
 		var index;
@@ -130,7 +136,11 @@ Aachorripsis {
 		nonActiveTracks.scramble[(0..(simEvents-1))].do({|j|
 			matrix[j][index] = AachorripsisCell(
 				type: eventType,
-				density: density,
+				density: if(distributeDensity, {
+					(eventType*singleEventsPerSec).gauss(1.0).max(0.25).round(0.5);
+				}, {
+					eventType * singleEventsPerSec;
+				}),
 			);
 		});
 	}
@@ -159,31 +169,81 @@ AachorripsisGUI {
 	init {
 		window = Window.new(
 			name: "Aachorripsis",
-			bounds: Rect(0, 0, 800, 400),
+			bounds: Rect(0, 0, 1200, 400),
 		);
 	}
 
+
 	buildWindow { |m|
-		var scroll = ScrollView(
-			parent: window,
-			bounds: Rect(0, 0, 1400, 700),
-		).hasBorder_(true);
+		var mainHLayout = HLayout();
 
-		var comp = VLayoutView(
-			parent: scroll,
-			bounds: Rect(0, 0, 1400, 700),
-		);
+		var scroll = ScrollView();
+		var view = View();
+		var leftVLayout = VLayout();
+		var rightVLayout = VLayout();
+		var buttonLegendLayout = HLayout();
 
+		// stuff that gets into scroll view
+		var scrollLayout = VLayout();
 
+		// time legend
+		var timeLegend = HLayout();
+		timeLegend.add(StaticText().string_("t"));
+		m.shape[1].do({|i|
+			timeLegend.add(Button().states_([[i, Color.white, Color.black]]));
+		});
+		scrollLayout.add(timeLegend);
+
+		// rows = tracks
 		m.do({|rows, i|
-			var rowView = HLayoutView(parent: comp, bounds: Rect(0, 0, 500, 50));
+			var rowView = HLayout();
+			rowView.add(StaticText().string_(i));
 
+			// columns = time segments
 			rows.do({|column, j|
 				var event = m[i][j];
-				Button(rowView).states_([[event.density, Color.black, AachorripsisGUI.colors[event.type] ? Color.blue]]);
+				rowView.add(
+					Button().states_([[event.density, Color.black, AachorripsisGUI.colors[event.type] ? Color.blue]])
+				);
 			});
+			scrollLayout.add(rowView);
 		});
 
+		view.layout = scrollLayout;
+		scroll.canvas = view;
+
+		AachorripsisGUI.colors.keys.asList.sort.do({|i|
+			buttonLegendLayout.add(Button().states_([[i, Color.black, AachorripsisGUI.colors[i]]]));
+		});
+
+		leftVLayout.add(scroll);
+		leftVLayout.add(buttonLegendLayout);
+		// vlayout.add(Button().states_([["Bab"]]));
+
+		mainHLayout.add(leftVLayout, stretch: 10);
+		// scroll.front;
+
+		rightVLayout.add(Button().states_([["Generate", Color.white, Color.blue]]));
+
+		rightVLayout.add(StaticText().string_("Lambda"));
+		rightVLayout.add(NumberBox().value_(0.6).step_(0.05).scroll_step_(0.05).clipLo_(0.05).clipHi_(0.95));
+		rightVLayout.add(StaticText().string_("Rows"));
+		rightVLayout.add(NumberBox().value_(7).step_(1).clipLo_(1));
+		rightVLayout.add(StaticText().string_("Columns"));
+		rightVLayout.add(NumberBox().value_(27).step_(1).clipLo_(1));
+
+		rightVLayout.add(Button().states_([
+			["Play", Color.black, Color.green],
+			["Stop", Color.black, Color.red]
+		]));
+		rightVLayout.add(StaticText().string_("CurrentLocation"));
+		rightVLayout.add(StaticText().string_(1));
+
+		mainHLayout.add(rightVLayout, stretch: 2);
+
+
+		window.layout = mainHLayout;
 		window.front;
+
 	}
 }
