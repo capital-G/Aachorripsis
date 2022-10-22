@@ -150,6 +150,13 @@ Aachorripsis {
 AachorripsisGUI {
 	classvar <>colors;
 	var window;
+	var <lambda;
+	var <rows;
+	var <columns;
+	var <matrix;
+
+	// private
+	var scrollView;
 
 	*initClass {
 		colors = (
@@ -167,41 +174,41 @@ AachorripsisGUI {
 	}
 
 	init {
+		lambda = 0.6;
+		rows = 7;
+		columns = 28;
+
 		window = Window.new(
 			name: "Aachorripsis",
 			bounds: Rect(0, 0, 1200, 400),
 		);
+		this.buildWindow();
 	}
 
-
-	buildWindow { |m|
-		var mainHLayout = HLayout();
-
-		var scroll = ScrollView();
-		var view = View();
-		var leftVLayout = VLayout();
-		var rightVLayout = VLayout();
-		var buttonLegendLayout = HLayout();
-
-		// stuff that gets into scroll view
+	prBuildScrollView {
 		var scrollLayout = VLayout();
-
-		// time legend
 		var timeLegend = HLayout();
+		var view = View();
+		matrix = Aachorripsis(
+			columns: columns,
+			rows: rows,
+			lambda: lambda,
+		).matrix;
+
 		timeLegend.add(StaticText().string_("t"));
-		m.shape[1].do({|i|
-			timeLegend.add(Button().states_([[i, Color.white, Color.black]]));
+		matrix.shape[1].do({|i|
+			timeLegend.add(Button().states_([[i+1, Color.white, Color.black]]));
 		});
 		scrollLayout.add(timeLegend);
 
 		// rows = tracks
-		m.do({|rows, i|
+		matrix.do({|rows, i|
 			var rowView = HLayout();
-			rowView.add(StaticText().string_(i));
+			rowView.add(StaticText().string_(i+1));
 
 			// columns = time segments
 			rows.do({|column, j|
-				var event = m[i][j];
+				var event = matrix[i][j];
 				rowView.add(
 					Button().states_([[event.density, Color.black, AachorripsisGUI.colors[event.type] ? Color.blue]])
 				);
@@ -210,27 +217,49 @@ AachorripsisGUI {
 		});
 
 		view.layout = scrollLayout;
-		scroll.canvas = view;
+		scrollView.canvas = view;
+	}
+
+
+	buildWindow {
+		var mainHLayout = HLayout();
+		var view = View();
+		var leftVLayout = VLayout();
+		var rightVLayout = VLayout();
+		var buttonLegendLayout = HLayout();
+
+		scrollView = ScrollView();
+
+		this.prBuildScrollView;
 
 		AachorripsisGUI.colors.keys.asList.sort.do({|i|
 			buttonLegendLayout.add(Button().states_([[i, Color.black, AachorripsisGUI.colors[i]]]));
 		});
 
-		leftVLayout.add(scroll);
+		leftVLayout.add(scrollView);
 		leftVLayout.add(buttonLegendLayout);
 		// vlayout.add(Button().states_([["Bab"]]));
 
 		mainHLayout.add(leftVLayout, stretch: 10);
-		// scroll.front;
 
-		rightVLayout.add(Button().states_([["Generate", Color.white, Color.blue]]));
+		rightVLayout.add(Button().states_([["Generate", Color.white, Color.blue]]).action_({
+			this.prBuildScrollView;
+		}));
 
 		rightVLayout.add(StaticText().string_("Lambda"));
-		rightVLayout.add(NumberBox().value_(0.6).step_(0.05).scroll_step_(0.05).clipLo_(0.05).clipHi_(0.95));
+		rightVLayout.add(NumberBox().value_(lambda).step_(0.05).scroll_step_(0.05).clipLo_(0.05).clipHi_(0.95).action_({|numb|
+			lambda=numb.value;
+		}));
+
 		rightVLayout.add(StaticText().string_("Rows"));
-		rightVLayout.add(NumberBox().value_(7).step_(1).clipLo_(1));
+		rightVLayout.add(NumberBox().value_(rows).step_(1).clipLo_(1).action_({|numb|
+			rows=numb.value.asInteger;
+		}));
+
 		rightVLayout.add(StaticText().string_("Columns"));
-		rightVLayout.add(NumberBox().value_(27).step_(1).clipLo_(1));
+		rightVLayout.add(NumberBox().value_(columns).step_(1).clipLo_(1).action_({|numb|
+			columns=numb.value.asInteger;
+		}));
 
 		rightVLayout.add(Button().states_([
 			["Play", Color.black, Color.green],
@@ -239,7 +268,7 @@ AachorripsisGUI {
 		rightVLayout.add(StaticText().string_("CurrentLocation"));
 		rightVLayout.add(StaticText().string_(1));
 
-		mainHLayout.add(rightVLayout, stretch: 2);
+		mainHLayout.add(rightVLayout, stretch: 1);
 
 
 		window.layout = mainHLayout;
