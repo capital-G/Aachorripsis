@@ -1,0 +1,6 @@
+(
+  name: "Aachorripsis",
+  summary: "Source code for Aachorripsis recalculation in SC.",
+  version: "0.1.0",
+  license: "GPL",
+)
