@@ -154,9 +154,12 @@ AachorripsisGUI {
 	var <rows;
 	var <columns;
 	var <matrix;
+	var <curColumn;
 
 	// private
 	var scrollView;
+	var curColumnText;
+	var timeButtons;
 
 	*initClass {
 		colors = (
@@ -177,6 +180,7 @@ AachorripsisGUI {
 		lambda = 0.6;
 		rows = 7;
 		columns = 28;
+		curColumn = 1;
 
 		window = Window.new(
 			name: "Aachorripsis",
@@ -187,17 +191,24 @@ AachorripsisGUI {
 
 	prBuildScrollView {
 		var scrollLayout = VLayout();
-		var timeLegend = HLayout();
 		var view = View();
+		var timeLegend = HLayout();
+
 		matrix = Aachorripsis(
 			columns: columns,
 			rows: rows,
 			lambda: lambda,
 		).matrix;
 
+		timeButtons = [];
 		timeLegend.add(StaticText().string_("t"));
 		matrix.shape[1].do({|i|
-			timeLegend.add(Button().states_([[i+1, Color.white, Color.black]]));
+			var button = Button().states_([
+				[i+1, Color.white, Color.black],
+				[i+1, Color.black, Color.yellow],
+			]);
+			timeButtons = timeButtons.add(button);
+			timeLegend.add(button);
 		});
 		scrollLayout.add(timeLegend);
 
@@ -238,7 +249,6 @@ AachorripsisGUI {
 
 		leftVLayout.add(scrollView);
 		leftVLayout.add(buttonLegendLayout);
-		// vlayout.add(Button().states_([["Bab"]]));
 
 		mainHLayout.add(leftVLayout, stretch: 10);
 
@@ -266,13 +276,24 @@ AachorripsisGUI {
 			["Stop", Color.black, Color.red]
 		]));
 		rightVLayout.add(StaticText().string_("CurrentLocation"));
-		rightVLayout.add(StaticText().string_(1));
+		curColumnText = StaticText().string_(curColumn);
+		rightVLayout.add(curColumnText);
 
 		mainHLayout.add(rightVLayout, stretch: 1);
 
 
 		window.layout = mainHLayout;
 		window.front;
+	}
 
+	curColumn_ {|newColumn|
+		// pos is num of Cell
+		scrollView.visibleOrigin_(Point(x: (newColumn/columns)*scrollView.innerBounds.width - (scrollView.bounds.width/2), y: 0));
+		curColumnText.string_(newColumn);
+		timeButtons.do({|button|
+			button.value = 0;
+		});
+		curColumn = newColumn;
+		timeButtons[newColumn-1].value = 1;
 	}
 }
