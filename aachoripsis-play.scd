@@ -1,6 +1,7 @@
 (
 q = q?();
-q[\offset] = 3;
+q[\offset] = 4;
+q[\gates] = [7];
 ServerOptions.outDevices;
 s.options.outDevice_("Studio 1824c");
 s.options.numOutputBusChannels_(8);
@@ -23,6 +24,19 @@ s.waitForBoot({
 		Out.ar(out, sig);
 	}).add;
 
+	SynthDef(\euroGate, {|out|
+		var sig = EnvGen.kr(
+			envelope: Env.adsr(
+				attackTime: 0.0,
+				decayTime: 0.0,
+				sustainLevel: 1.0,
+				releaseTime: 0.0
+			), gate: \gate.kr(1.0),
+		);
+		sig = K2A.ar(sig);
+		Out.ar(out, sig);
+	}).add;
+
 	s.meter;
 	s.scope(numChannels: s.options.numOutputBusChannels);
 	a = AachorripsisGUI();
@@ -41,14 +55,16 @@ Tdef(\aachorripsis, {|env|
 
 			if(cell.type != 0, {
 				(density).do({|d|
+					var out = q[\offset]?0 + i;
+					["test", q[\gates].includes(out), out].postln;
 					(
-						\instrument: \euroEnv,
-						\out: q[\offset]?0 + i,
-						\attackTime: a.matrix[i][j].density,
+						\instrument: if(q[\gates].includes(out), {\euroGate}, {\euroEnv}),
+						\out: out,
+						\attackTime: density.reciprocal,
 						\timingOffset: (d/density)*waitTime,
 						\amp: density/(5*8),
-						\legato: 0.01,
-						\releaseTime: 0.2,
+						\legato: density.reciprocal,
+						\releaseTime: density.reciprocal * 4,
 					).postln.play;
 				});
 			});
@@ -59,7 +75,15 @@ Tdef(\aachorripsis, {|env|
 	"finished Aachorripsis".postln;
 });
 )
+Tdef.clear;
 
+(
+(
+instrument: \euroGate,
+out: 6,
+legato: 20.5
+).play;
+)
 
 
 
