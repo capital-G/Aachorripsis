@@ -2,6 +2,8 @@
 q = q?();
 q[\offset] = 1;
 q[\gates] = [4,5,6,7];
+q[\woodBlockOut] = 0;
+
 ServerOptions.outDevices;
 s.options.outDevice_("Studio 1824c");
 s.options.numOutputBusChannels_(8);
@@ -36,28 +38,43 @@ s.waitForBoot({
 		Out.ar(out, sig);
 	}).add;
 
+	q[\woodBlock] = Buffer.read(
+		server: s,
+		path: PathName(thisProcess.nowExecutingPath).pathOnly +/+ "wood-block.flac"
+	);
+
+	SynthDef(\bplay, {|out|
+		var sig = PlayBuf.ar(2, \bufnum.kr(1), rate: 1.0, doneAction: Done.freeSelf);
+		sig = sig[0] * \amp.kr(0.5);
+		Out.ar(out, sig);
+	}).add;
+
 	s.meter;
 	s.scope(numChannels: s.options.numOutputBusChannels);
 	a = AachorripsisGUI();
 });
-t = TempoClock.new(1.0, queueSize: 4096*16);
+
+t =TempoClock.new(1.0, queueSize: 4096*16);
 )
+
+
 
 (
 Tdef(\aachorripsis, {|env|
 	var waitTime = 15;
 	var multiplier = 15;
 	a.matrix.shape[1].do({|columnNum, j|
+		var columnDensity = 0;
 		a.curColumn = columnNum+1;
 
 		a.matrix.shape[0].do({|rowNum, i|
 			var cell = a.matrix[i][j];
 			var density = cell.density * multiplier;
+			columnDensity = columnDensity + cell.density;
 
 			if(cell.type != 0, {
 				(density).do({|d|
 					var out = q[\offset]?0 + i;
-					["test", q[\gates].includes(out), out].postln;
 					(
 						\instrument: if(q[\gates].includes(out), {\euroGate}, {\euroEnv}),
 						\out: out,
@@ -71,11 +88,26 @@ Tdef(\aachorripsis, {|env|
 			});
 		});
 
+		// play wood block sample in sparse sections
+		if(columnDensity <= 2, {
+			var clicks = (3..6).choose;
+			clicks.do({|i|
+				(
+					\instrument: \bplay,
+					\bufnum: q[\woodBlock],
+					\out: q[\woodBlockOut] ? 0,
+					\amp: 1.0,
+					\timingOffset: (i/clicks)*waitTime,
+				).postln.play;
+			});
+		});
+
 		waitTime.wait;
 	});
 	"finished Aachorripsis".postln;
 }).clock_(t);
 )
+
 Tdef.clear;
 
 (
