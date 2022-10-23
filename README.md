@@ -28,11 +28,13 @@ This includes an example how the generated events are used as gates or envelopes
 
 ## Wood block sample
 
-Xenakis is infamous for his use wood blocks in compositions - listen e.g. to *Metastaseis*.
-Although it is not noted in *Formalized Music* it also appears in the score of *Aachorripsis*, yet it is not explained how it got there.
-I assume that it was used in sparse sections to provide some orientation, therefore it is also played back here in sparse sections.
+Xenakis is infamous for his use of wood blocks in compositions - listen e.g. to *Metastaseis*.
+Although it is not noted in *Formalized Music* the wood block appears in parts with low or no density in the score of *Aachorripsis*.
+I assume that it was used in sparse sections to provide some orientation, therefore it is also played back here in sparse sections as it also is a trademark of Xenakis.
 
-The sample is provided by *lostphosphene* via [freesound.org](https://freesound.org/people/lostphosphene/sounds/250386/).
+Also the orchestral score released by *Bote & Bock* does not give any hints of the origins of the woodblock hits.
+
+The included sample is provided by *lostphosphene* via [freesound.org](https://freesound.org/people/lostphosphene/sounds/250386/).
 
 ## License
 
