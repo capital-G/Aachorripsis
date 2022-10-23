@@ -1,7 +1,7 @@
 (
 q = q?();
-q[\offset] = 1;
-q[\gates] = [4,5,6,7];
+q[\offset] = 2;
+q[\gates] = [];
 q[\woodBlockOut] = 0;
 
 ServerOptions.outDevices;
@@ -80,9 +80,12 @@ Tdef(\aachorripsis, {|env|
 						\out: out,
 						\attackTime: density.reciprocal,
 						\timingOffset: (d/density)*waitTime,
-						\amp: density/(multiplier),
-						\legato: density.reciprocal,
-						\releaseTime: density.reciprocal * multiplier * 2,
+						\amp: density.reciprocal * 5, //density/(multiplier),
+						\legato: cell.density.reciprocal * 5,
+						\decayTime: 0.01,
+						\sustainLevel: cell.density.reciprocal * 0.2,
+						\curve: -20,
+						\releaseTime: density.reciprocal * multiplier * 4,
 					).postln.play;
 				});
 			});
