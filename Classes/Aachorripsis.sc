@@ -16,19 +16,21 @@ Aachorripsis {
 	var <columns; // number of time segments
 	var <rows; // number of instruments/tracks
 	var <lambda; // average that an event will happen
-	var singleEventsPerSec;
 	// xenakis uses 1-events... but the used density for a cell is
 	// not directly equal to this but instead it is normal distributed
 	// this is not documented in formalized music but if you compare the
-	// numbers in the score it checks out
-	var <distributeDensity;
+	// numbers in the score it checks out - we use the sigma parameter of
+	// the normal distribution to distribute events - set it to 0 to disable
+	// this behavior
+	var <sigma;
+	var singleEventsPerSec;
 	// there are 0-events, 1-events, 2-events - you may want to limit this?
 	var <maxEventOrder;
 	var <matrix;
 	var <p;
 
-	*new {|columns=28, rows=7, lambda=0.6, singleEventsPerSec=2, distributeDensity=true, maxEventOrder=5|
-		^super.newCopyArgs(columns, rows, lambda, singleEventsPerSec, distributeDensity, maxEventOrder).init;
+	*new {|columns=28, rows=7, lambda=0.6, sigma=1.0, singleEventsPerSec=2, maxEventOrder=5|
+		^super.newCopyArgs(columns, rows, lambda, sigma, singleEventsPerSec, maxEventOrder).init;
 	}
 
 	init {
@@ -136,8 +138,8 @@ Aachorripsis {
 		nonActiveTracks.scramble[(0..(simEvents-1))].do({|j|
 			matrix[j][index] = AachorripsisCell(
 				type: eventType,
-				density: if(distributeDensity, {
-					(eventType*singleEventsPerSec).gauss(1.0).max(0.25).round(0.5);
+				density: if(sigma>0.0, {
+					(eventType*singleEventsPerSec).gauss(sigma).max(0.25).round(0.5);
 				}, {
 					eventType * singleEventsPerSec;
 				}),
@@ -151,6 +153,7 @@ AachorripsisGUI {
 	classvar <>colors;
 	var window;
 	var <lambda;
+	var <sigma;
 	var <rows;
 	var <columns;
 	var <matrix;
@@ -178,6 +181,7 @@ AachorripsisGUI {
 
 	init {
 		lambda = 0.6;
+		sigma = 1.0;
 		rows = 7;
 		columns = 28;
 		curColumn = 1;
@@ -198,6 +202,7 @@ AachorripsisGUI {
 			columns: columns,
 			rows: rows,
 			lambda: lambda,
+			sigma: sigma,
 		).matrix;
 
 		timeButtons = [];
@@ -259,6 +264,11 @@ AachorripsisGUI {
 		rightVLayout.add(StaticText().string_("Lambda"));
 		rightVLayout.add(NumberBox().value_(lambda).step_(0.05).scroll_step_(0.05).clipLo_(0.05).clipHi_(0.95).action_({|numb|
 			lambda=numb.value;
+		}));
+
+		rightVLayout.add(StaticText().string_("Sigma"));
+		rightVLayout.add(NumberBox().value_(sigma).step_(0.25).scroll_step_(0.25).clipLo_(0.00).clipHi_(5.0).action_({|numb|
+			sigma=numb.value;
 		}));
 
 		rightVLayout.add(StaticText().string_("Rows"));
