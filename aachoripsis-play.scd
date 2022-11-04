@@ -81,7 +81,7 @@ Tdef(\aachorripsis, {|env|
 						\attackTime: density.reciprocal,
 						\timingOffset: (d/density)*waitTime,
 						\amp: density.reciprocal * 5, //density/(multiplier),
-						\legato: cell.density.reciprocal * 5,
+						\legato: if(q[\gates].includes(out), {density.reciprocal}, {cell.density.reciprocal * 5}),
 						\decayTime: 0.01,
 						\sustainLevel: cell.density.reciprocal * 0.2,
 						\curve: -20,
