@@ -23,8 +23,8 @@ thisProcess.recompile;
 
 ## Usage
 
-Take a look into the provided `aachoripsis-play.scd` on how to run this.
-This includes an example how the generated events are used as gates or envelopes in an eurorack environment.
+`AachorripsisGUI` allows you to generate and examine a matrix (according to *Formalized Music*) as well as starting a [Tdef](https://doc.sccode.org/Classes/Tdef.html) with the name `\aachorripsis`.
+Take a look into the provided `aachoripsis-play.scd` which also includes an example how to use the matrix events as gates or envelopes in an eurorack environment.
 
 ## Wood block sample
 
