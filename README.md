@@ -36,6 +36,12 @@ Also the orchestral score released by *Bote & Bock* does not give any hints of t
 
 The included sample is provided by *lostphosphene* via [freesound.org](https://freesound.org/people/lostphosphene/sounds/250386/).
 
+## Performance
+
+The source code was written for a concert on 2022-10-25 in honor of Xenakis 100th birthday.
+Instead of the 7 instrument groups it was performed with 2 modular synthesizer systems which received 7 gates to trigger musical events.
+See the [website of the concert](https://capital-g.github.io/xenakis-workgroup/concert.html#aachorripsis-recalculated) for further details.
+
 ## License
 
 GPL-2.0
