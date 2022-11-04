@@ -1,7 +1,7 @@
 (
 q = q?();
-q[\offset] = 2;
-q[\gates] = [];
+q[\offset] = 1;
+q[\gates] = [4,5,6,7];
 q[\woodBlockOut] = 0;
 
 ServerOptions.outDevices;
